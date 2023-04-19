@@ -1,0 +1,9 @@
+{
+  "accessKey": "s3_access_key",
+  "secretKey": "s3_secret_key",
+  "rootBucket": "testdata",
+  "keyPrefix": "local",
+  "endpoint": "http://localhost:9000",
+  "presignedUrlTtl": 604800000,
+  "presignedUrlEndpoint": "http://localhost:9000"
+}

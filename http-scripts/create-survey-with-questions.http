@@ -1,0 +1,202 @@
+### Send auth request
+POST {{keycloak_host}}/auth/realms/{{realm}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{client_id}}&username={{username}}&password={{password}}&grant_type=password
+
+> {% client.global.set("auth_token", response.body.access_token); %}
+
+### Create new survey
+POST {{survey_host}}/api/admin/survey
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Опрос 1",
+  "title": "Заголовок опроса для велком-страницы",
+  "description": "Описание опроса"
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+client.global.set("survey_id", response.body.id);
+%}
+
+### Create open question
+POST {{survey_host}}/api/admin/question
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "surveyId": "{{survey_id}}",
+  "type": "OPEN",
+  "question": "Открытый вопрос?",
+  "comment": "Комментарий",
+  "isMandatory": true
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+client.global.set("open_question_id", response.body.id);
+%}
+
+### Create choice question
+POST {{survey_host}}/api/admin/question
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "surveyId": "{{survey_id}}",
+  "type": "CHOICE",
+  "question": "Вопрос с выбором ответа?",
+  "ordinalNumber": 0,
+  "isMultipleChoice": true,
+  "isEnabledDifficultToAnswer": true
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+client.global.set("choice_question_id", response.body.id);
+%}
+
+### Create answer option 1 for choice question
+POST {{survey_host}}/api/admin/question/choice/answer
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "questionId": "{{choice_question_id}}",
+  "value": "Вариант 1",
+  "ordinalNumber": 0
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+client.global.set("choice_question_answer_option_1", response.body.id);
+%}
+
+### Create answer option 2 for choice question
+POST {{survey_host}}/api/admin/question/choice/answer
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "questionId": "{{choice_question_id}}",
+  "value": "Вариант 2",
+  "ordinalNumber": 10
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+client.global.set("choice_question_answer_option_2", response.body.id);
+%}
+
+### Create answer option 3 for choice question
+POST {{survey_host}}/api/admin/question/choice/answer
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "questionId": "{{choice_question_id}}",
+  "value": "Вариант 3",
+  "ordinalNumber": 0
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+client.global.set("choice_question_answer_option_3", response.body.id);
+%}
+
+### Update answer option 3
+PUT {{survey_host}}/api/admin/question/choice/answer
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "id": "{{choice_question_answer_option_3}}",
+  "value": "Вариант 3",
+  "ordinalNumber": 2
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+### Create scale question
+POST {{survey_host}}/api/admin/question
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "surveyId": "{{survey_id}}",
+  "type": "SCALE",
+  "question": "Шкала мнений?",
+  "ordinalNumber": 2,
+  "isMandatory": true,
+  "isCommentEnabled": true,
+  "isWithNumbers": false
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+client.global.set("scale_question_id", response.body.id);
+%}
+
+### Update choice question
+PUT {{survey_host}}/api/admin/question
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "id": "{{choice_question_id}}",
+  "type": "CHOICE",
+  "question": "Вопрос с выбором ответа? изм",
+  "comment": "Коммент",
+  "ordinalNumber": 0,
+  "isMandatory": true,
+  "isMultipleChoice": true,
+  "isEnabledDifficultToAnswer": true
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+### Update open question
+PUT {{survey_host}}/api/admin/question
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "id": "{{open_question_id}}",
+  "type": "OPEN",
+  "question": "Открытый вопрос? изм",
+  "comment": "Комментарий изм",
+  "ordinalNumber": 10,
+  "isMandatory": false,
+  "isEnabledDifficultToAnswer": true
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}

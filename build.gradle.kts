@@ -19,6 +19,7 @@ subprojects {
         plugin(Plugins.java)
         plugin(Plugins.kotlin)
         plugin(Plugins.update_dependencies)
+        plugin(Plugins.java_test_fixtures)
         plugin(Plugins.detekt)
     }
 
