@@ -1,5 +1,6 @@
 package core
 
+import com.mex.s3.S3SetProperties
 import com.microsoft.playwright.Browser
 import com.microsoft.playwright.BrowserContext
 import com.microsoft.playwright.BrowserType.LaunchOptions
@@ -7,7 +8,6 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
 import com.microsoft.playwright.Tracing.StartOptions
 import com.microsoft.playwright.Tracing.StopOptions
-import com.mex.s3.S3SetProperties
 import io.qameta.allure.Allure
 import org.mex.testutils.UUIDGenerator
 import org.testng.ITestResult
@@ -65,13 +65,12 @@ open class BaseTest {
     }
 
     /**
-     * Добавляет вложения к упавшему тесту. Скриншот, исходный код страницы, трейсинг
+     * Добавляет вложения к упавшему тесту. Скриншот, исходный код страницы, и ссылку на трейсинг
      *
      * @param result данные о тесте
      * @throws IOException
      */
     @AfterMethod
-    @Throws(IOException::class)
     fun attachFilesToFailedTest(result: ITestResult) {
         if (!result.isSuccess) {
             val uuid = UUIDGenerator().generateAndToString()
@@ -84,30 +83,32 @@ open class BaseTest {
             Allure.addAttachment("source.html", "text/html", page.content())
 
             if (isTraceEnabled) {
-                val fileName = "s3properties.json"
-                val fileUrl = javaClass.classLoader.getResource(fileName)
-                val filePath = Paths.get(fileUrl!!.toURI()).toString()
-                val s3 = S3SetProperties(filePath).s3FileStorage
+                val s3 = S3SetProperties(getSettings("s3properties.json")).s3FileStorage
 
                 val tempTracePath: Path = Files.createTempFile("trace-", ".zip")
                 context.tracing().stop(StopOptions().setPath(tempTracePath))
-
-                val outputStream = ByteArrayOutputStream().apply {
-                    FileInputStream(tempTracePath.toFile()).use { inputStream ->
-                        inputStream.copyTo(this, bufferSize = 1024)
-                    }
-                }
-
-                val traceFileName = String.format("%s_trace.zip", uuid)
-                val traceInputStream: InputStream = ByteArrayInputStream(outputStream.toByteArray())
+                val outputStreamFile = outputStreamToByteArray(tempTracePath)
+                val traceFileName = "${uuid}_trace.zip"
+                val traceInputStream: InputStream = ByteArrayInputStream(outputStreamFile)
                 s3.putObject(traceFileName, traceInputStream.readBytes())
                 val presignedUrl = s3.getPresignedUrl(traceFileName)
-
                 Files.delete(tempTracePath)
 
                 val traceUrl = "https://trace.playwright.dev/?trace="
                 Allure.step("Go playwright trace: ${traceUrl + presignedUrl}")
             }
         }
+    }
+
+    private fun outputStreamToByteArray(tempTracePath: Path): ByteArray =
+        ByteArrayOutputStream().apply {
+            FileInputStream(tempTracePath.toFile()).use { inputStream ->
+                inputStream.copyTo(this, bufferSize = 1024)
+            }
+        }.toByteArray()
+
+    private fun getSettings(fileName: String): String {
+        val fileUrl = javaClass.classLoader.getResource(fileName)
+        return Paths.get(fileUrl!!.toURI()).toString()
     }
 }
