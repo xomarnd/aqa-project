@@ -6,7 +6,7 @@ object LibVers {
 
     const val aws_java_sdk_s3 = "1.12.342"
 
-    const val junit_jupiter = "5.9.1"
+    const val junit_jupiter = "5.9.2"
 
     const val kotest = "5.5.1"
 

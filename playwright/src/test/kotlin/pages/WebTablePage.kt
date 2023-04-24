@@ -18,7 +18,7 @@ class WebTablePage(private val page: Page) {
     fun search(query: String?) {
         // заполнение текстового поля
         page.fill(searchBoxLocator, query)
-        val expectedSelector = String.format("//div[@class='rt-td' and text()='%s']", query)
+        val expectedSelector = "//div[@class='rt-td' and text()='$query']"
         // намеренное ожидание элемента на странице с использованием state.
         page.waitForSelector(expectedSelector, Page.WaitForSelectorOptions().setState(WaitForSelectorState.VISIBLE))
     }

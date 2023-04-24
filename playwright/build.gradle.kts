@@ -5,14 +5,11 @@ plugins {
 
 
 dependencies {
-    testImplementation(Libs.junit_jupiter)
-    testImplementation(project(mapOf("path" to ":common:test-utils")))
-    testRuntimeOnly(Libs.junit_engine)
-
     implementation(Libs.playwright)
     testImplementation(Libs.testng)
 
     testImplementation(project(mapOf("path" to ":common:s3")))
+    testImplementation(project(mapOf("path" to ":common:test-utils")))
 }
 
 tasks.getByName<Test>("test") {
